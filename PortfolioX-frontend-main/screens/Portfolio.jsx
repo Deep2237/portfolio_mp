@@ -1,144 +1,229 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { defaultStyle } from "../styles/style";
+import { ScrollView } from "react-native-gesture-handler";
+import { useSelector } from "react-redux";
+import axios from "axios";
+import { server } from "../redux/store";
+import { Dimensions } from "react-native";
 
-const Portfolio = () => {
-  const stocksData = [
-    {
-      name: "Stock 1",
-      quantity: "100",
-      currentPrice: "110",
-      buyingPrice: "95",
-      profit: "1500",
-      totalValue: "15000",
-    },
-    {
-      name: "Stock 2",
-      quantity: "50",
-      currentPrice: "80",
-      buyingPrice: "70",
-      profit: "500",
-      totalValue: "4000",
-    },
-    // Add more stocks as needed
-  ];
+// Get the screen width
+const screenWidth = Dimensions.get("window").width;
 
-  // Calculate total amount invested and current portfolio value
+const Portfolio = ({ navigation }) => {
+  const { message, error, isAuthenticated, user } = useSelector(
+    (state) => state.user
+  );
+
+  const [stocksData, setStocksData] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`${server}/getportfoliodata`)
+      .then((response) => {
+        setStocksData(response.data.logoData);
+      })
+      .catch((error) => {
+        console.log("Error", "Failed to fetch stock data");
+      });
+  }, [user]);
+
   const totalInvested = stocksData.reduce(
-    (sum, stock) => sum + parseFloat(stock.buyingPrice) * parseFloat(stock.quantity),
+    (sum, stock) => sum + stock.avgbuyingprice * stock.quantity,
     0
   );
 
   const currentPortfolioValue = stocksData.reduce(
-    (sum, stock) => sum + parseFloat(stock.currentPrice) * parseFloat(stock.quantity),
+    (sum, stock) => sum + stock.currentprice * stock.quantity,
     0
   );
 
   const profitLoss = currentPortfolioValue - totalInvested;
   const profitLossPercentage = ((profitLoss / totalInvested) * 100).toFixed(2);
+  const handleStockCardClick = (symbol) => {
+    navigation.navigate("StockDetail", { symbol: symbol });
+  };
 
   const renderStockCards = () => {
     return stocksData.map((stock, index) => (
-      <View key={index} style={[styles.card]}>
-       <View style={styles.row}>
-          <Text style={[styles.title, styles.leftAligned]}>
-            {stock.name}
-          </Text>
-          <Text style={[styles.value, styles.rightAligned]}>
-            Quantity: {stock.quantity}
-          </Text>
-        </View>
-        <View style={styles.rowWithBorder}>
-          <View style={styles.column}>
-            <Text style={[styles.title, styles.leftAligned]}>
-              Current Market Price
+      <TouchableOpacity
+        key={index}
+        activeOpacity={0.7}
+        onPress={() => handleStockCardClick(stock.symbol)}
+      >
+        <View style={[styles.card]}>
+          <View style={styles.row}>
+            <Text
+              style={[styles.title, styles.leftAligned, styles.name]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {stock.name}
             </Text>
-            <Text style={[styles.value, styles.left1]}>
-              ₹{stock.currentPrice}
-            </Text>
-          </View>
-          <View style={styles.column}>
-            <Text style={[styles.title, styles.rightAligned]}>
-              Buying Price
-            </Text>
+
             <Text style={[styles.value, styles.rightAligned]}>
-              ₹{stock.buyingPrice}
+              Quantity: {stock.quantity}
             </Text>
+          </View>
+          <View style={styles.rowWithBorder}>
+            <View style={styles.column}>
+              <Text style={[styles.title, styles.leftAligned]}>
+                Current Price
+              </Text>
+              <Text style={[styles.value, styles.left1]}>
+                ₹{stock.currentprice}
+              </Text>
+            </View>
+            <View style={styles.column}>
+              <Text style={[styles.title, styles.rightAligned]}>
+                Avg. Buying Price
+              </Text>
+              <Text style={[styles.value, styles.rightAligned]}>
+                ₹{stock.avgbuyingprice}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.column}>
+              <Text style={[styles.title, styles.leftAligned]}>Profit</Text>
+              <Text
+                style={[
+                  styles.value,
+                  styles.left1,
+                  stock.currentprice >= stock.avgbuyingprice
+                    ? styles.greenText
+                    : styles.redText,
+                ]}
+              >
+                ₹
+                {(
+                  (stock.currentprice - stock.avgbuyingprice) *
+                  stock.quantity
+                ).toFixed(2)}
+              </Text>
+              <Text
+                style={[
+                  styles.value1,
+                  styles.left1,
+                  stock.currentprice >= stock.avgbuyingprice
+                    ? styles.greenText
+                    : styles.redText,
+                ]}
+              >
+                {(
+                  ((stock.currentprice - stock.avgbuyingprice) /
+                    stock.avgbuyingprice) *
+                  100
+                ).toFixed(2)}
+                %
+              </Text>
+            </View>
+            <View style={styles.column}>
+              <Text style={[styles.title, styles.rightAligned]}>
+                Total Value
+              </Text>
+              <Text style={[styles.value, styles.rightAligned]}>
+                ₹{(stock.currentprice * stock.quantity).toFixed(2)}
+              </Text>
+            </View>
           </View>
         </View>
-        <View style={styles.row}>
-          <View style={styles.column}>
-            <Text style={[styles.title, styles.leftAligned]}>
-              Profit
-            </Text>
-            <Text style={[styles.value, styles.left1, stock.profit >= 0 ? styles.greenText : styles.redText]}>
-              ₹{stock.profit}
-            </Text>
-          </View>
-          <View style={styles.column}>
-            <Text style={[styles.title, styles.rightAligned]}>
-              Total Value
-            </Text>
-            <Text style={[styles.value, styles.rightAligned]}>
-              ₹{stock.totalValue}
-            </Text>
-          </View>
-        </View> 
-      </View>
+      </TouchableOpacity>
     ));
   };
 
   return (
-    <View style={defaultStyle}>
-      <View style={styles.totalInfoCard}>
-        <View style={styles.row}>
-        <View style={styles.column}>
-          <Text style={[styles.title, styles.leftAligned]}>Invested:</Text>
-          <Text style={[styles.value, styles.left1]}>₹{totalInvested}</Text>
+    <ScrollView style={styles.container}>
+      <View style={defaultStyle}>
+        {stocksData.length === 0 ? (
+          <Text style={styles.noStocksText}>No stocks available</Text>
+        ) : (
+          <View style={styles.totalInfoCard}>
+            <View style={styles.row}>
+              <View style={styles.column}>
+                <Text style={[styles.title, styles.leftAligned]}>Invested</Text>
+                <Text style={[styles.value, styles.left1]}>
+                  ₹{totalInvested.toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.column}>
+                <Text style={[styles.title, styles.rightAligned]}>
+                  Current Value
+                </Text>
+                <Text style={[styles.value, styles.right1]}>
+                  ₹{currentPortfolioValue.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.rowWithBorder}>
+              <Text style={[styles.title, styles.leftAligned]}>
+                Profit/Loss:
+              </Text>
+              <View style={styles.column}>
+                <Text
+                  style={[
+                    styles.value,
+                    styles.rightAligned,
+                    profitLoss >= 0 ? styles.greenText : styles.redText,
+                  ]}
+                >
+                  {profitLoss >= 0 ? "+" : ""}₹{profitLoss.toFixed(2)}
+                </Text>
+                <Text
+                  style={[
+                    styles.value1,
+                    styles.rightAligned,
+                    profitLoss >= 0 ? styles.greenText : styles.redText,
+                  ]}
+                >
+                  {profitLossPercentage >= 0 ? "+" : ""}
+                  {profitLossPercentage}%
+                </Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.column}>
-          <Text style={[styles.title, styles.rightAligned]}>Current Value:</Text>
-          <Text style={[styles.value, styles.right1]}>₹{currentPortfolioValue}</Text>
-          </View>
-        </View>
-        <View style={styles.rowWithBorder}>
-          <Text style={[styles.title, styles.leftAligned]}>Profit/Loss:</Text>
-          <View style={styles.column}>
-          <Text style={[styles.value, styles.rightAligned, profitLoss >= 0 ? styles.greenText : styles.redText]}>
-          {profitLoss >= 0 ? '+' : ''}{profitLoss}
-          </Text>
-          <Text style={[styles.value1, styles.rightAligned, profitLoss >= 0 ? styles.greenText : styles.redText]}>
-          {profitLoss >= 0 ? '+' : ''}{profitLossPercentage}%
-          </Text>
-          </View>
-        </View>
+        )}
+
+        {renderStockCards()}
       </View>
-      {renderStockCards()}
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+    width: screenWidth,
+  },
   totalInfoCard: {
     backgroundColor: "#292929",
     borderRadius: 8,
     margin: 8,
     padding: 15,
-    height: 160,
+    height: "auto", // Allow flexible height
     marginBottom: 20,
+  },
+  noStocksText: {
+    fontSize: 16,
+    color: "white",
+    textAlign: "center",
+    marginTop: 20,
   },
   card: {
     backgroundColor: "#292929",
     borderRadius: 8,
     margin: 8,
-    padding: 15,
-    height: 250,
+    padding: 20,
+    height: "auto", // Allow flexible height
+    width: screenWidth - 40, // Allow flexible width
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop:10,
+    marginTop: 10,
     marginBottom: 10,
+    // width: screenWidth - 0, // Allow flexible width
   },
   rowWithBorder: {
     flexDirection: "row",
@@ -153,6 +238,14 @@ const styles = StyleSheet.create({
     textAlign: "left",
     color: "#DDD",
   },
+  name: {
+    textAlign: "left",
+    color: "#DDD",
+    // paddingRight: 0,
+    // borderRightWidth: 1,
+    // borderRightColor: "#777",
+    // marginRight: 50,
+  },
   rightAligned: {
     textAlign: "right",
     color: "#DDD",
@@ -162,13 +255,13 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 10,
     fontWeight: "bold",
     color: "#DDD",
   },
   value: {
-    fontSize: 15,
+    fontSize: 13,
     color: "#DDD",
   },
   value1: {
@@ -190,298 +283,3 @@ const styles = StyleSheet.create({
 });
 
 export default Portfolio;
-
-
-
-// import React from "react";
-// import { View, Text, StyleSheet } from "react-native";
-// import { defaultStyle } from "../styles/style";
-
-// const Portfolio = () => {
-//   const portfolioData = {
-//     invested: {
-//       title: "Invested",
-//       value: "10,000",
-//     },
-//     currentValue: {
-//       title: "Current Value",
-//       value: "11,000",
-//     },
-//     profitLoss: {
-//       title: "P/L",
-//       value: "1,000",
-//       percentageChange: "10%",
-//     },
-//   };
-
-//   // Check if profit/loss is positive or negative
-//   const isProfitPositive = parseFloat(portfolioData.profitLoss.value) >= 0;
-//   const isPercentageChangePositive =
-//     parseFloat(portfolioData.profitLoss.percentageChange) >= 0;
-
-//   return (
-//     <View style={defaultStyle}>
-//       <View style={[styles.card]}>
-//         <View style={styles.row}>
-//           <View style={[styles.rowPart, styles.left]}>
-//             <Text style={[styles.title, styles.left1]}>
-//               {portfolioData.invested.title}
-//             </Text>
-//             <Text style={[styles.value, styles.left1]}>
-//               ₹{portfolioData.invested.value}
-//             </Text>
-//           </View>
-//           <View style={[styles.rowPart, styles.right]}>
-//             <Text style={[styles.title, styles.right1]}>
-//               {portfolioData.currentValue.title}
-//             </Text>
-//             <Text style={[styles.value, styles.right1]}>
-//               ₹{portfolioData.currentValue.value}
-//             </Text>
-//           </View>
-//         </View>
-//         <View style={styles.rowWithBorder}>
-//           <Text style={[styles.title, styles.leftAligned]}>
-//             {portfolioData.profitLoss.title}
-//           </Text>
-//           <View style={styles.rightAligned}>
-//             <Text
-//               style={[
-//                 styles.value,
-//                 styles.right1,
-//                 isProfitPositive ? styles.greenText : styles.redText,
-//               ]}
-//             >
-//               {isProfitPositive ? "+" : "-"}₹
-//               {portfolioData.profitLoss.value.replace("+", "").replace("-", "")}
-//             </Text>
-//             {portfolioData.profitLoss.percentageChange && (
-//               <Text
-//                 style={[
-//                   styles.percentageChange,
-//                   styles.right1,
-//                   isPercentageChangePositive
-//                     ? styles.greenText
-//                     : styles.redText,
-//                 ]}
-//               >
-//                 {isPercentageChangePositive ? "+" : "-"}
-//                 {portfolioData.profitLoss.percentageChange
-//                   .replace("+", "")
-//                   .replace("-", "")}
-//               </Text>
-//             )}
-//           </View>
-//         </View>
-//       </View>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   card: {
-//     backgroundColor: "#1A1A1A", // Dark background color
-//     borderRadius: 8,
-//     margin: 8,
-//     padding: 15,
-//     height: 150,
-//   },
-//   row: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     marginBottom: 20,
-//   },
-//   rowWithBorder: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     borderTopColor: "#777", // Top border color
-//     borderTopWidth: 1, // Top border width
-//     borderBottomColor: "#777", // Bottom border color
-//     paddingTop: 10,
-//     marginBottom: 10,
-//   },
-//   left: {
-//     justifyContent: "flex-start",
-//   },
-//   right: {
-//     justifyContent: "flex-end",
-//   },
-//   right1: {
-//     alignSelf: "flex-end",
-//   },
-//   left1: {
-//     alignSelf: "flex-start",
-//   },
-//   rowPart: {
-//     flex: 1,
-//     flexDirection: "column",
-//     justifyContent: "space-between",
-//   },
-//   title: {
-//     color: "#777", // Grey color
-//     fontSize: 16,
-//     marginBottom: 10,
-//     fontWeight: "bold",
-//   },
-//   value: {
-//     fontSize: 16,
-//     color: "white",
-//   },
-//   percentageChange: {
-//     fontSize: 12,
-//     color: "white",
-//   },
-//   redText: {
-//     color: "red",
-//   },
-//   greenText: {
-//     color: "green",
-//   },
-//   leftAligned: {
-//     textAlign: "left",
-//   },
-//   rightAligned: {
-//     textAlign: "right",
-//   },
-// });
-
-// export default Portfolio;
-// import React from "react";
-// import { View, Text, StyleSheet } from "react-native";
-// import { defaultStyle } from "../styles/style";
-
-// const Portfolio = () => {
-//   const stocksData = [
-//     {
-//       name: "Stock 1",
-//       quantity: "100",
-//       currentPrice: "110",
-//       buyingPrice: "95",
-//       profit: "1500",
-//       totalValue: "15000",
-//     },
-//     {
-//       name: "Stock 2",
-//       quantity: "50",
-//       currentPrice: "80",
-//       buyingPrice: "70",
-//       profit: "500",
-//       totalValue: "4000",
-//     },
-//     // Add more stocks as needed
-//   ];
-
-//   const renderStockCards = () => {
-//     return stocksData.map((stock, index) => (
-//       <View key={index} style={[styles.card]}>
-        // <View style={styles.row}>
-        //   <Text style={[styles.title, styles.leftAligned]}>
-        //     {stock.name}
-        //   </Text>
-        //   <Text style={[styles.value, styles.rightAligned]}>
-        //     Quantity: {stock.quantity}
-        //   </Text>
-        // </View>
-        // <View style={styles.rowWithBorder}>
-        //   <View style={styles.column}>
-        //     <Text style={[styles.title, styles.leftAligned]}>
-        //       Current Market Price
-        //     </Text>
-        //     <Text style={[styles.value, styles.left1]}>
-        //       ₹{stock.currentPrice}
-        //     </Text>
-        //   </View>
-        //   <View style={styles.column}>
-        //     <Text style={[styles.title, styles.rightAligned]}>
-        //       Buying Price
-        //     </Text>
-        //     <Text style={[styles.value, styles.rightAligned]}>
-        //       ₹{stock.buyingPrice}
-        //     </Text>
-        //   </View>
-        // </View>
-        // <View style={styles.rowWithBorder}>
-        //   <View style={styles.column}>
-        //     <Text style={[styles.title, styles.leftAligned]}>
-        //       Profit
-        //     </Text>
-        //     <Text style={[styles.value, styles.left1, stock.profit >= 0 ? styles.greenText : styles.redText]}>
-        //       ₹{stock.profit}
-        //     </Text>
-        //   </View>
-        //   <View style={styles.column}>
-        //     <Text style={[styles.title, styles.rightAligned]}>
-        //       Total Value
-        //     </Text>
-        //     <Text style={[styles.value, styles.rightAligned]}>
-        //       ₹{stock.totalValue}
-        //     </Text>
-        //   </View>
-        // </View>
-//       </View>
-//     ));
-//   };
-
-//   return (
-//     <View style={defaultStyle}>
-//       {renderStockCards()}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-  // card: {
-  //   backgroundColor: "#1A1A1A",
-  //   borderRadius: 8,
-  //   margin: 8,
-  //   padding: 15,
-  //   height: 250,
-  // },
-  // row: {
-  //   flexDirection: "row",
-  //   justifyContent: "space-between",
-  //   marginBottom: 20,
-  // },
-  // rowWithBorder: {
-  //   flexDirection: "row",
-  //   justifyContent: "space-between",
-  //   borderTopColor: "#777",
-  //   borderTopWidth: 1,
-  //   borderBottomColor: "#777",
-  //   paddingTop: 10,
-  //   marginBottom: 10,
-  // },
-  // leftAligned: {
-  //   textAlign: "left",
-  //   color: "#FFF",
-  // },
-  // rightAligned: {
-  //   textAlign: "right",
-  //   color: "#FFF",
-  // },
-  // column: {
-  //   flex: 1,
-  //   flexDirection: "column",
-  // },
-  // title: {
-  //   fontSize: 16,
-  //   marginBottom: 10,
-  //   fontWeight: "bold",
-  //   color: "#777",
-  // },
-  // value: {
-  //   fontSize: 16,
-  //   color: "white",
-  // },
-  // left1: {
-  //   alignSelf: "flex-start",
-  // },
-  // redText: {
-  //   color: "red",
-  // },
-  // greenText: {
-  //   color: "green",
-  // },
-// });
-
-// export default Portfolio;

@@ -10,14 +10,12 @@ import Loader from "./Loader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Home = ({ navigation }) => {
-  // Sample data for each section with name, price, and change percentage
   const [topGainersData, setTopGainersData] = useState([]);
   const [topLosersData, setTopLosersData] = useState([]);
   const [popularstocks, setPopularStocks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const handleStockItemClick = (name) => {
-    console.log("Clicked on stock symbol:", name);
     navigation.navigate("StockDetail", { symbol: name });
   };
 
@@ -25,21 +23,7 @@ const Home = ({ navigation }) => {
     const loaddata = async () => {
       try {
         setLoading(true);
-        // const token = "check";
-        // AsyncStorage.setItem("token1", token);
-        // // await AsyncStorage.removeItem("token");
-        // const keys = await AsyncStorage.getAllKeys();
-        // const items = await AsyncStorage.multiGet(keys);
-        // // // items is an array of key-value pairs
 
-        // // // You can loop through items and process them as needed
-        // console.log("All Tokens");
-        // items.forEach(([key, value]) => {
-        //   console.log(`Key: ${key}, Value: ${value}`);
-        // });
-        // console.log(token1);
-        // setTopGainersData([]);
-        // setTopLosersData([]);
         const { data } = await axios.get(
           `https://portfolio-x-backend.vercel.app/api/v1/topgainer`,
           {
@@ -63,13 +47,9 @@ const Home = ({ navigation }) => {
 
         setPopularStocks(data2.data.topstocks);
         setTopLosersData(data1.data.topstocks);
-        // await setTopGainersData(data.top5Stocks);
+
         setTopGainersData(data.topstocks);
 
-        // data.top5Stocks[0].name = "OP";
-        // console.log(topGainersData);
-
-        // console.log(topGainersData, topLosersData);
         setLoading(false);
       } catch (error) {
         console.log(error);

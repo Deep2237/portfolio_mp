@@ -24,7 +24,7 @@ const ForgotPassword = ({ navigation }) => {
 
   const submitHandler = () => {
     dispatch(forgetPassword(email));
-    console.log(email);
+    // console.log(email);
   };
 
   return (

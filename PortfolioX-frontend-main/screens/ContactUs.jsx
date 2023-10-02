@@ -24,7 +24,7 @@ const ContactUs = ({ navigation }) => {
   const submitHandler = () => {
     // Your contact form submission logic here
     dispatch(contactUs(name, email, message));
-    console.log(email, message, name);
+    // console.log(email, message, name);
   };
 
   return (

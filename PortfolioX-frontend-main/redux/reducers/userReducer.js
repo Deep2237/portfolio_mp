@@ -24,6 +24,7 @@ export const userReducer = createReducer({}, (builder) => {
             state.loading = false;
             state.isAuthenticated = true;
             state.user = action.payload;
+            // console.log(action.payload)
         })
         .addCase("logoutSuccess", (state, action) => {
             state.loading = false;
@@ -117,7 +118,7 @@ export const profileReducer = createReducer({}, (builder) => {
             state.loading = false;
             state.message = action.payload;
         })
-        .addCase("addToPlaylistSuccess", (state) => {
+        .addCase("addToPlaylistSuccess", (state, action) => {
             state.loading = false;
             state.message = action.payload;
         });
@@ -174,7 +175,7 @@ export const otherReducer = createReducer({}, (builder) => {
         });
     builder
         .addCase("contactFail", (state, action) => {
-            console.log("load")
+            // console.log("load")
             state.loading = false;
             state.error = action.payload;
         });
@@ -185,3 +186,47 @@ export const otherReducer = createReducer({}, (builder) => {
         state.message = null;
     });
 });
+
+const subscriptionReducer = createReducer(
+    {},
+    (builder) => {
+        builder
+            .addCase('buySubscriptionRequest', (state) => {
+                state.loading = true;
+            })
+            .addCase('buySubscriptionSuccess', (state, action) => {
+                state.loading = false;
+                state.subscriptionId = action.payload;
+            })
+            .addCase('buySubscriptionFail', (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase('clearSubscriptionId', (state, action) => {
+                state.loading = false;
+                state.subscriptionId = null;
+            })
+            .addCase('cancelSubscriptionRequest', (state) => {
+                state.loading = true;
+            })
+            .addCase('cancelSubscriptionSuccess', (state, action) => {
+                state.loading = false;
+                state.message = action.payload;
+            })
+            .addCase('cancelSubscriptionFail', (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase('clearError', (state) => {
+                state.error = null;
+            })
+            .addCase('clearMessage', (state) => {
+                state.message = null;
+            });
+    }
+);
+
+export default subscriptionReducer;
+
+
+

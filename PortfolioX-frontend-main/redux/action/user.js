@@ -76,3 +76,44 @@ export const logout = () => async dispatch => {
         dispatch({ type: 'logoutFail', payload: error.response.data.message });
     }
 };
+
+export const buySubscription = (name, symbol, quantity, avgbuyingprice) => async dispatch => {
+    try {
+        dispatch({ type: 'buySubscriptionRequest' });
+
+        const { data } = await axios.post(`${server}/subscribe`, { name, symbol, quantity, avgbuyingprice }, {
+            headers: {
+                'Content-type': 'application/json',
+            },
+
+            withCredentials: true,
+        });
+        console.log(data.client_secret);
+
+        dispatch({ type: 'buySubscriptionSuccess', payload: data.client_secret });
+    } catch (error) {
+        dispatch({
+            type: 'buySubscriptionFail',
+            payload: error.response.data.message,
+        });
+    }
+};
+
+
+
+export const cancelSubscription = () => async dispatch => {
+    try {
+        dispatch({ type: 'cancelSubscriptionRequest' });
+
+        const { data } = await axios.delete(`${server}/subscribe/cancel`, {
+            withCredentials: true,
+        });
+
+        dispatch({ type: 'cancelSubscriptionSuccess', payload: data.message });
+    } catch (error) {
+        dispatch({
+            type: 'cancelSubscriptionFail',
+            payload: error.response.data.message,
+        });
+    }
+};

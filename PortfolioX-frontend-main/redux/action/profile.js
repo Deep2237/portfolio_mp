@@ -142,7 +142,7 @@ export const resetPassword = (otp, password) => async (dispatch) => {
     }
 };
 
-export const addToPlaylist = id => async dispatch => {
+export const addToPlaylist = (name, symbol) => async dispatch => {
     try {
         dispatch({ type: 'addToPlaylistRequest' });
 
@@ -157,11 +157,11 @@ export const addToPlaylist = id => async dispatch => {
         const { data } = await axios.post(
             `${server}/addtoplaylist`,
             {
-                id,
+                name, symbol
             },
             config
         );
-
+        // console.log(data)
         dispatch({ type: 'addToPlaylistSuccess', payload: data.message });
     } catch (error) {
         dispatch({
@@ -171,16 +171,21 @@ export const addToPlaylist = id => async dispatch => {
     }
 };
 
-export const removeFromPlaylist = id => async dispatch => {
+export const removeFromPlaylist = (name, symbol) => async dispatch => {
     try {
         dispatch({ type: 'removeFromPlaylistRequest' });
 
         const config = {
+            headers: {
+                'Content-type': 'application/json',
+            },
+
             withCredentials: true,
         };
-
-        const { data } = await axios.delete(
-            `${server}/removefromplaylist?id=${id}`,
+        // console.log("in redux", name, symbol)
+        const { data } = await axios.post(
+            `${server}/removefromplaylist`,
+            { name, symbol },
             config
         );
 
@@ -209,7 +214,7 @@ export const contactUs = (name, email, message) => async dispatch => {
             { name, email, message },
             config
         );
-        console.log(data);
+        // console.log(data);
         dispatch({ type: 'contactSuccess', payload: data.message });
     } catch (error) {
         dispatch({

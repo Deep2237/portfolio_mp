@@ -21,13 +21,15 @@ import { useSelector } from "react-redux";
 import Profile from "../screens/Profile";
 import Verify from "../screens/Verify";
 import WatchList from "../screens/WatchList";
+import Subscribe from "../screens/Payment/Subscribe";
+import PaymentSuccess from "../screens/Payment/PaymentSuccess";
 
 const Drawer = createDrawerNavigator();
 const AuthStack = () => {
   const { loading, message, error, isAuthenticated, user } = useSelector(
     (state) => state.user
   );
-  console.log(loading, message, error, isAuthenticated, user);
+  // console.log(loading, message, error, isAuthenticated, user);
   // const initialRouteName = isAuthenticated ? "Home" : "Register";
 
   return (
@@ -168,6 +170,26 @@ const AuthStack = () => {
       <Drawer.Screen
         name="Search"
         component={Search}
+        options={{
+          headerShown: false,
+          drawerIcon: ({ color }) => (
+            <Ionicons name="chatbox-ellipses-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Subscribe"
+        component={Subscribe}
+        options={{
+          headerShown: false,
+          drawerIcon: ({ color }) => (
+            <Ionicons name="chatbox-ellipses-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="PaymentSuccess"
+        component={PaymentSuccess}
         options={{
           headerShown: false,
           drawerIcon: ({ color }) => (

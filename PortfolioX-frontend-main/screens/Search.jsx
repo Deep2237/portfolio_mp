@@ -23,7 +23,7 @@ const Search = ({ navigation }) => {
   const handleInputChange = (text) => {
     // Handle input changes and log the input
     setInputValue(text);
-    console.log("Input Value:", text);
+    // console.log("Input Value:", text);
   };
   const renderItem = ({ item }) => {
     // Remove the postfix ".NS" or ".BO" from the symbol
@@ -35,7 +35,7 @@ const Search = ({ navigation }) => {
     const exchange = item.symbol.endsWith(".NS") ? "NSE" : "BSE";
 
     const handleStockItemClick = () => {
-      console.log("Clicked Stock Symbol:", item.symbol);
+      // console.log("Clicked Stock Symbol:", item.symbol);
       navigation.navigate("StockDetail", { symbol: item.symbol });
     };
 

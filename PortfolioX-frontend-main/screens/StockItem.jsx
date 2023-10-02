@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
   },
   left: {
     flex: 1,
+    marginRight: 10,
   },
   right: {
     flexDirection: "column",
@@ -76,6 +77,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 18,
+
     color: "#fff", // White text color
     fontWeight: "bold",
   },

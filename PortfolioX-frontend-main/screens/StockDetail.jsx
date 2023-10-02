@@ -13,8 +13,17 @@ import { useNavigation } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
 import { ProgressBar } from "react-native-paper";
 import Loader from "./Loader";
+import {
+  useMessageAndErrorOther,
+  useMessageAndErrorProfile,
+} from "../utils/hooks";
+import { addToPlaylist, removeFromPlaylist } from "../redux/action/profile";
+import { useDispatch, useSelector } from "react-redux";
+import { server } from "../redux/store";
+import { loadUser } from "../redux/action/user";
+import ErrorCom from "./ErrorCom";
 
-const StockPage = ({ route, navigation: { goBack } }) => {
+const StockPage = ({ route, navigation }) => {
   const [chart, setChart] = useState({});
   const [coin, setCoin] = useState({});
   const [loading, setLoading] = useState(true);
@@ -26,12 +35,43 @@ const StockPage = ({ route, navigation: { goBack } }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const { symbol } = route.params;
   const [progress, setProgress] = useState(0);
+  const dispatch = useDispatch();
 
-  const toggleBookmark = () => {
-    setIsBookmarked(!isBookmarked); // Toggle bookmark status
-    console.log("Bookmark status:", isBookmarked, symbol);
+  const loading1 = useMessageAndErrorProfile(navigation, dispatch, null);
+  // const { user } = useSelector((state) => state.user);
+  const { message, error, isAuthenticated, user } = useSelector(
+    (state) => state.user
+  );
+  // console.log(user);
+
+  // setLoading(loading1);
+
+  const toggleBookmark = async () => {
+    // setIsBookmarked(!isBookmarked); // Toggle bookmark status
+    // console.log(
+    //   "Bookmark status:",
+    //   isBookmarked,
+    //   symbol,
+    //   coin.quoteType.longName
+    // );
+    if (isBookmarked) {
+      console.log("remove");
+      await dispatch(removeFromPlaylist(coin.quoteType.longName, symbol));
+      await dispatch(loadUser());
+    } else {
+      console.log("add");
+      await dispatch(addToPlaylist(coin.quoteType.longName, symbol));
+      await dispatch(loadUser());
+    }
+    // console.log(user);
   };
+
   const handleBuy = () => {
+    navigation.navigate("Subscribe", {
+      name: coin.quoteType.longName,
+      symbol: symbol,
+      avgbuyingprice: chart.meta.regularMarketPrice,
+    });
     console.log("Buy button clicked", symbol);
   };
 
@@ -67,10 +107,11 @@ const StockPage = ({ route, navigation: { goBack } }) => {
       setcharttime([]);
       setLoading(true);
       setError(false);
-      setIsBookmarked(false);
+      // setIsBookmarked(false);
       // setInter("5m");
       // setRange("1d");
-      console.log("hello here");
+      // console.log("hello here");
+
       try {
         const response = await axios.get(
           `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?region=US&lang=en-US&includePrePost=false&interval=${inter}&range=${range}&corsDomain=finance.yahoo.com&.tsrc=finance`
@@ -84,18 +125,18 @@ const StockPage = ({ route, navigation: { goBack } }) => {
         setcharttime(response.data.chart.result[0].timestamp);
 
         if (chartarr.length !== charttime.length) {
-          console.log("diff");
+          // console.log("diff");
           setError(true);
         }
         let temp = response.data.chart.result[0].indicators.quote[0].close;
-        console.log(temp);
+        // console.log(temp);
         if (temp[0] === null) temp[0] = 0;
         for (let i = 1; i < temp.length; i++) {
           if (temp[i] === null) {
             temp[i] = temp[i - 1];
           }
         }
-        console.log(temp);
+        // console.log(temp);
 
         setchartarr(temp);
 
@@ -119,9 +160,10 @@ const StockPage = ({ route, navigation: { goBack } }) => {
               .regularMarketDayHigh.raw -
               response1.data.quoteSummary.result[0].summaryDetail
                 .regularMarketDayLow.raw);
-          console.log(progress);
+          // console.log(progress);
           setProgress(progress);
         }
+        // console.log("in user ", user);
         setLoading(false);
         setError(false);
       } catch (error) {
@@ -133,6 +175,25 @@ const StockPage = ({ route, navigation: { goBack } }) => {
     fetchCoin();
   }, [route.params, range, route]);
 
+  useEffect(() => {
+    console.log("load");
+    console.log(user);
+    setIsBookmarked(false);
+    if (isAuthenticated) {
+      user.watchlist.map((item, index) => {
+        if (
+          // item.name ===
+          //   response1.data.quoteSummary.result[0].quoteType.longName &&
+          item.symbol === symbol
+        ) {
+          // console.log("match");
+          setIsBookmarked(true);
+          return;
+        }
+      });
+    }
+  }, [route.params, user, isAuthenticated]);
+
   const timeRangeButtons = ["1D", "5D", "1MO", "1Y", "5Y", "MAX"];
   if (Error) return <ErrorCom />;
   return (
@@ -143,7 +204,7 @@ const StockPage = ({ route, navigation: { goBack } }) => {
         <View style={[styles.container]}>
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => goBack()}
+              onPress={() => navigation.goBack()}
               style={styles.backButton}
             >
               <Icon name="ios-arrow-back" size={30} color="#fff" />
@@ -155,7 +216,7 @@ const StockPage = ({ route, navigation: { goBack } }) => {
               <Icon
                 name={isBookmarked ? "bookmark" : "bookmark-outline"}
                 size={30}
-                color={isBookmarked ? "yellow" : "#fff"}
+                color={isBookmarked ? "green" : "#fff"}
               />
             </TouchableOpacity>
           </View>

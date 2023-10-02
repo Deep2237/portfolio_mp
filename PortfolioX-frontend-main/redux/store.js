@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import {
+import subscriptionReducer, {
     otherReducer,
     profileReducer,
     userReducer,
@@ -9,10 +9,12 @@ const store = configureStore({
     reducer: {
         user: userReducer,
         profile: profileReducer,
-        other: otherReducer
+        other: otherReducer,
+        subscription: subscriptionReducer,
+
     },
 });
 
 export default store;
 
-export const server = 'http://192.168.1.5:4000/api/v1';
+export const server = 'http://192.168.29.109:4000/api/v1';

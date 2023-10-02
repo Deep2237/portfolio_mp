@@ -20,6 +20,7 @@ const CustomDrawer = (props) => {
   const { message, error, isAuthenticated, user } = useSelector(
     (state) => state.user
   );
+  // console.log(user);
   const dispatch = useDispatch();
   const loading = useMessageAndErrorUser(props.navigation, dispatch, "Home");
 
