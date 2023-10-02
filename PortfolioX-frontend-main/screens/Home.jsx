@@ -25,20 +25,20 @@ const Home = ({ navigation }) => {
         setLoading(true);
 
         const { data } = await axios.get(
-          `https://portfolio-x-backend.vercel.app/api/v1/topgainer`,
+          `https://portfoliox-backend.onrender.com/api/v1/topgainer`,
           {
             withCredentials: true,
           }
         );
         const data1 = await axios.get(
-          `https://portfolio-x-backend.vercel.app/api/v1/toplosers`,
+          `https://portfoliox-backend.onrender.com/api/v1/toplosers`,
 
           {
             withCredentials: true,
           }
         );
         const data2 = await axios.get(
-          `https://portfolio-x-backend.vercel.app/api/v1/getpopular`,
+          `https://portfoliox-backend.onrender.com/api/v1/getpopular`,
 
           {
             withCredentials: true,
